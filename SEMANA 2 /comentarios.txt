@@ -1,1 +1,2 @@
-
+exercicio01 - foi extremamente tranquilo e cmo eu ja tinha visto for com essa estrutura no js, foi facil.
+exercicio02 -
