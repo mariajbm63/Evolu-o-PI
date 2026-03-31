@@ -1,1 +1,5 @@
-
+Senti MUITA dificuldade em entender como os arrays funcionam, ate entender que eles são caixinhas de memorias separadas pra cada bit de informação, então acaba sendo bem diferente de python.
+exercicio01 - essa questão foi a mais simples pois foi direto ao ponto em relação ao que fazer.
+exercicio02 - aqui eu consegui fazer numa boa porque eu finalmente tinha entendido como funcionava o armazenamento dos arrays,
+exercicio03 - novamente foi tranquilo, porque eu entendi como funcionava os vetores e como foi mais sobre posição, foi tranquilo resolver a questão.
+exercicio04 - ao meu ver, foi a mais facil da lista. So verificação de cada elemento do vetor.
