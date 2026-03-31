@@ -1,3 +1,4 @@
 exercicio01 - foi extremamente tranquilo e cmo eu ja tinha visto for com essa estrutura no js, foi facil.
 exercicio02 - nessa questão eu acabei tendo dificuldade em relação a logica e nas mudanças de varias variaveis de controle.
 exercicio03 - achei mais tranquila, pra mim foi mais sobre condições a serem atingidas do que manejar os laços de repetição igual a 02.
+exercicio04 - nessa questão eu acabei me atrapalhando mais na logica de imprimir a esquerda e nas condições de parada em relaão ao limite do campo.
