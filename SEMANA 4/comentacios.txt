@@ -1,5 +1,0 @@
-Dessa vez eu sinto que entendi melhor como manejar matrizes, pq eu tinha visto em python, mas o conceito ficou meio confuso. Agora eu sinto que realmente entendi.
-exercicio01 - foi o mais longo, o mais dificil e oque mais perdi no que eu tinha que fazer pois tenho dificuldade em cuidar de varias variaveis diferentes.
-exercicio02 - não tava entendendo a principio, mas depois que entendi como funcionava pra espalahar a gota eu consegui fazer a logica certinho.
-exercicio03 - achei meio confuso como escreveram a questão, mas foi facil.
-exercicio04 - a questão mais facil de todas, facil de entender, de fazer e muito legal. Um beijo a gabi por essa.
