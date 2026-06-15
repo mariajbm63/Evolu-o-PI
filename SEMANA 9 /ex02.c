@@ -1,185 +1,156 @@
 #include <stdio.h>
-#include <stdlib.h>
+#include <math.h>
 #include <string.h>
+#include <stdlib.h>
 
 typedef struct {
-  int codigo;
-  char nome[100];
-  int quantidade;
-  float preco;
-} Produto;
+  long long mat;
+  int pri;
+  float cr;
+  int L;
+  int R;
+  int score;
+  char situacao[10];
+} Alunos;
+
+typedef struct no {
+  Alunos aluno;
+  struct no *proximo;
+} No;
 
 typedef struct {
-  int codigo;
-  char tipo;
-  int quantidade;
-} Movimento;
+  No *inicio;
+  No *fim;
+} Fila;
 
-typedef struct {
-  int codigo;
-  char tipo;
-  int estoque;
-  char erro[200];
-} Inconsistencia;
+// função que calcula o score
+int calculoScore(Alunos aluno) {
+  return (round(aluno.cr * 100))/aluno.pri;
+}
 
-void processarArquivos(FILE *produtos, FILE *movimentos) {
-  char linha[300];
-  int capacidadeProduto = 1;
-  int quantidadeProduto = 0;
-  int capacidadeMovimentos = 1;
-  int quantidadeMovimentos = 0;
-  Produto *produtosLista = malloc(capacidadeProduto * sizeof(Produto)); 
-  Movimento *movimentosLista = malloc(capacidadeMovimentos * sizeof(Movimento)); 
+// dunção de adiciona na fila
+void enqueue(Fila *fila, Alunos aluno) {
+  No *novo = malloc(sizeof(No));
 
-  while(fgets(linha, 300, produtos) != NULL) {
-    if(capacidadeProduto == quantidadeProduto) {
-      capacidadeProduto *= 2;
-      Produto *temp = realloc(produtosLista, capacidadeProduto * sizeof(Produto));
-      if(temp == NULL) {
-        printf("Erro na alocação de memoria de produtos");
-      }
-      produtosLista = temp;
+  // verifico se criou o espaço do novo aluno
+  if(novo != NULL) {
+    novo->aluno = aluno;
+    novo->proximo = NULL;
+
+    // se for o primeiro da fila, o inicio e o fim vão ser ele
+    if(fila->inicio == NULL) {
+      fila->inicio = novo;
+      fila->fim = novo;
+      // caso não for o primeiro da fila, o fim do ultimo vai apontar pra ele e ele é o proprio fim
+    } else {
+      fila->fim->proximo = novo;
+      fila->fim = novo;
     }
-
-    sscanf(linha, "%d %s %d %f",
-      &produtosLista[quantidadeProduto].codigo,
-      produtosLista[quantidadeProduto].nome,
-      &produtosLista[quantidadeProduto].quantidade,
-      &produtosLista[quantidadeProduto].preco); 
-
-    quantidadeProduto++;
+  } else {
+    printf("Erro na alocacao de memoria de inserir fila\n");
   }
+}
 
-  while(fgets(linha, 300, movimentos) != NULL) {
-    if(capacidadeMovimentos == quantidadeMovimentos) {
-      capacidadeMovimentos *= 2;
-      Movimento *temp = realloc(movimentosLista, capacidadeMovimentos * sizeof(Movimento));
-      if(temp == NULL) {
-        printf("Erro na alocação de memoria de produtos");
-      }
-      movimentosLista = temp;
+// função de remover
+Alunos dequeue(Fila *fila) {
+  No *aux = fila->inicio;
+  Alunos alunoRemov = {0};
+  
+  // se criou o espaço de aux o fila inicio se torna o proximo da fila
+  if(aux != NULL) {
+    alunoRemov = aux->aluno;
+    fila->inicio = fila->inicio->proximo;
+    // caso a fila tenha acabado =, o fim tambem é nulo
+    if(fila->inicio == NULL) {
+      fila->fim = NULL;
     }
-
-    sscanf(linha, "%d %c %d",
-      &movimentosLista[quantidadeMovimentos].codigo,
-      &movimentosLista[quantidadeMovimentos].tipo,
-      &movimentosLista[quantidadeMovimentos].quantidade); 
-
-    quantidadeMovimentos++;
+    free(aux);
   }
 
-  int movimentosAplicados = 0;
-  int saidasRecusadas = 0;
-  int codigosInexistentes = 0;
-  int encontrado = 0;
-
-  int capacidadeInconsistencia = 1;
-  int quantidadeInconsistencia = 0;
-  Inconsistencia *inconsistenciaLista = malloc(capacidadeInconsistencia * sizeof(Inconsistencia));
-
-  for(int i = 0; i < quantidadeMovimentos; i++) {
-    encontrado = 0;
-    for(int j = 0; j < quantidadeProduto; j++) {
-      
-      if(produtosLista[j].codigo == movimentosLista[i].codigo) {
-        encontrado = 1;
-        if(movimentosLista[i].tipo == 'E') {
-          produtosLista[j].quantidade += movimentosLista[i].quantidade;
-          movimentosAplicados++;
-
-        } else if(movimentosLista[i].tipo == 'S') {
-          if(movimentosLista[i].quantidade <= produtosLista[j].quantidade) {
-            produtosLista[j].quantidade -= movimentosLista[i].quantidade;
-            movimentosAplicados++;
-          } else {
-            if(capacidadeInconsistencia == quantidadeInconsistencia) {
-              capacidadeInconsistencia *= 2;
-              Inconsistencia *temp = realloc(inconsistenciaLista, capacidadeInconsistencia * sizeof(Inconsistencia));
-              if(temp == NULL) {
-                printf("Erro na alocação de memoria de incosistencia");
-              }
-              inconsistenciaLista = temp;
-            }
-
-            inconsistenciaLista[quantidadeInconsistencia].codigo = movimentosLista[i].codigo;
-            inconsistenciaLista[quantidadeInconsistencia].tipo = movimentosLista[i].tipo;
-            inconsistenciaLista[quantidadeInconsistencia].estoque = movimentosLista[i].quantidade;
-            strcpy(inconsistenciaLista[quantidadeInconsistencia].erro, "ESTOQUE_INSUFICIENTE");
-            
-            saidasRecusadas++;
-            quantidadeInconsistencia++;
-          }
-        }
-      }
-    }
-    if(!encontrado) {
-      if(capacidadeInconsistencia == quantidadeInconsistencia) {
-        capacidadeInconsistencia *= 2;
-        Inconsistencia *temp = realloc(inconsistenciaLista, capacidadeInconsistencia * sizeof(Inconsistencia));
-        if(temp == NULL) {
-          printf("Erro na alocação de memoria de incosistencia");
-        }
-        inconsistenciaLista = temp;
-      }
-
-      inconsistenciaLista[quantidadeInconsistencia].codigo = movimentosLista[i].codigo;
-      inconsistenciaLista[quantidadeInconsistencia].tipo = movimentosLista[i].tipo;
-      inconsistenciaLista[quantidadeInconsistencia].estoque = movimentosLista[i].quantidade;
-      strcpy(inconsistenciaLista[quantidadeInconsistencia].erro, "PRODUTO_INEXISTENTE");
-      
-      codigosInexistentes++;
-      quantidadeInconsistencia++;
-    }
-  }
-
-  FILE *estoque_atualizado = fopen("estoque_atualizado.txt", "w");
-  for(int i = 0; i < quantidadeProduto; i++) {
-    fprintf(estoque_atualizado, "%d %s %d %f\n", 
-      produtosLista[i].codigo,
-      produtosLista[i].nome,
-      produtosLista[i].quantidade,
-      produtosLista[i].preco);
-  }
-
-  FILE *relatorio = fopen("relatorio.txt", "w");
-  fprintf(relatorio, "PRODUTOS PROCESSADOS: %d\n", quantidadeProduto);
-  fprintf(relatorio, "MOVIMENTOS APLICADOS: %d\n", movimentosAplicados);
-  fprintf(relatorio, "SAIDAS RECUSADAS: %d\n", saidasRecusadas);
-  fprintf(relatorio, "MOVIMENTOS SEM CADASTRO: %d\n", codigosInexistentes);
-  fprintf(relatorio, "ESTOQUE BAIXO:\n");
-  for(int i = 0; i < quantidadeProduto; i++) {
-    if(produtosLista[i].quantidade <= 5) {
-      fprintf(relatorio, "%d %s %d\n", produtosLista[i].codigo, produtosLista[i].nome, produtosLista[i].quantidade);
-    }
-  }
-  fprintf(relatorio, "INCONSISTENCIAS:\n");
-  for(int i = 0; i < quantidadeInconsistencia; i++) {
-    fprintf(relatorio, "%d %c %d %s\n", inconsistenciaLista[i].codigo, inconsistenciaLista[i].tipo, inconsistenciaLista[i].estoque, inconsistenciaLista[i].erro);
-  }
-
-  fclose(estoque_atualizado);
-  fclose(relatorio);
-  free(produtosLista);
-  free(movimentosLista);
-  free(inconsistenciaLista);
+  return alunoRemov;
 }
 
 int main() {
-  FILE *produtos = fopen("produtos.txt", "r");
-  FILE *movimentos = fopen("movimentos.txt", "r");
+  char comando[10];
+  char disciplina[51];
+  int vagas;
+  int fim = 0;
+  int temp = 1;
+  Fila *filaRequisicoes = malloc(sizeof(Fila));
+  filaRequisicoes->inicio = NULL;
+  filaRequisicoes->fim = NULL;
 
-  if(produtos && movimentos) {
-    processarArquivos(produtos, movimentos);
-  } else {
-    printf("Erro ao abrir os arquivos");
+  Fila *filaConfirmados = malloc(sizeof(Fila));
+  filaConfirmados->inicio = NULL;
+  filaConfirmados->fim = NULL;
+
+  // aqui recebe o comando ate a parada de fim ou terminar o arquivo
+  while(scanf("%s", comando) != EOF && fim == 0) {
+    if(strcmp(comando, "START") == 0) {
+      scanf("%s %d", disciplina, &vagas);  
+    } else if(strcmp(comando, "ADD") == 0) {
+      Alunos alunoNovo;
+      scanf("%lld %d %f %d %d", 
+        &alunoNovo.mat, 
+        &alunoNovo.pri, 
+        &alunoNovo.cr, 
+        &alunoNovo.L, 
+        &alunoNovo.R);
+
+        int scoreNovo = calculoScore(alunoNovo);
+        alunoNovo.score = scoreNovo;
+
+        enqueue(filaRequisicoes, alunoNovo);
+    } else if(strcmp(comando, "PROC") == 0) {
+      int qtde;
+      int flag = 0;
+      int i = 0;
+      scanf("%d", &qtde);
+
+      while(qtde > i && flag == 0) {
+        if(filaRequisicoes->inicio == NULL) {
+          flag = 1;
+        } else {
+          Alunos alunoRemov = dequeue(filaRequisicoes);
+
+          if(temp < alunoRemov.L) {
+            temp = alunoRemov.L;
+          } 
+          
+          if(temp > alunoRemov.R) {
+            printf("[TIMEOUT] mat=%lld | Desconectado da fila.\n", alunoRemov.mat);
+          } else {
+            if(vagas > 0) {
+              printf("[ALOCADO] mat=%lld | score=%d | Processado no seg: %d\n", alunoRemov.mat, alunoRemov.score, temp);
+              vagas--;
+              temp++;
+
+              enqueue(filaConfirmados, alunoRemov);
+            } else {
+              printf("[LOTADO] mat=%lld | score=%d | Processado no seg: %d\n", alunoRemov.mat, alunoRemov.score, temp);
+              temp++;
+            }
+          }
+        }
+        i++;
+      }
+
+    } else if(strcmp(comando, "FIM") == 0) {
+      fim = 1;
+      int i = 1;
+
+      printf("--- LISTA OFICIAL: %s ---\n", disciplina);
+      while(filaConfirmados->inicio != NULL) {
+        Alunos aprovado = dequeue(filaConfirmados);
+
+        printf("%d. Matricula: %lld\n", i, aprovado.mat);
+        i++;
+      }
+    }
   }
   
-  if(produtos) {
-    fclose(produtos);
-  }
-  if(movimentos) {
-    fclose(movimentos);
-  }
+  free(filaConfirmados);
+  free(filaRequisicoes);
 
   return 0;
 }
