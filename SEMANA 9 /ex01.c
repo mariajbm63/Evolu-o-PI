@@ -2,132 +2,156 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef struct no {
+  char cor;
+  struct no *proximo;
+} No;
+
 typedef struct {
-  float Slength;
-  float Swidth;
-  float Plenght;
-  float Pwidth;
-  char species[50];
-} Iris;
+  No *topo;
+} Pilha;
 
-void processarArquivo(FILE *arquivo, char nome[]) {
-  char linha[300];
-  fgets(linha, 300, arquivo);
+// função que adiciona nova info na pilha
+void empilha(Pilha *pilha, char cor) {
+  // cria o espaço do novo topo
+  No *novo = malloc(sizeof(No));
+  
+  if(novo != NULL) {
+    // recebe tudo e depois joga no topo
+    novo->cor = cor;
+    novo->proximo = pilha->topo;
+    pilha->topo = novo;
+  } else {
+    printf("Erro ao alocar memoria em empilha\n");
+  }
+}
 
-  int capacidade = 1;
-  int quantidade = 0;
-  Iris *flores = malloc(capacidade * sizeof(Iris));
+// função de imprimit. Se a pilha não estiver vazia, 
+// vai percorrer a pilha ate o ultimo elemento e printar as cores
+void imprimir(Pilha *pilha) {
+  No *cores = pilha->topo;
+  if(pilha->topo == NULL) {
+    printf("Pilha vazia!\n");
+    printf("\n");
+  } else {
+    while(cores != NULL) {
+      printf("%c\n", cores->cor);
+      cores = cores->proximo;
+    }
+    printf("\n");
+  }
+}
 
-  while(fgets(linha, 300, arquivo) != NULL) {
-    if(capacidade == quantidade) {
-      capacidade *= 2;
-      Iris *temp = realloc(flores, capacidade * sizeof(Iris));
-      if(temp == NULL) {
-        printf("Falha no realloc");
+// função de fundir, primeiro verifico se existe dois elementos na pilha
+int fundir(Pilha *pilha) {
+  No *primeiro = pilha->topo;
+  
+  if(primeiro == NULL) {
+    return 0;
+  }
+  
+  No *segundo = pilha->topo->proximo;
+  if(segundo == NULL) {
+    return 0;
+  }
+  
+  // depois eu vejo as combinações de cores
+  if((primeiro->cor == 'g' && segundo->cor == 'b') || (primeiro->cor == 'b' && segundo->cor == 'g')) {
+    // dentro do bloco de cada combinação existe essa estrutura que:
+    // pega o primeiro e aponta para o proximo
+    No *temp1 = pilha->topo;
+    pilha->topo = pilha->topo->proximo;
+  
+    No *temp2 = pilha->topo;
+    pilha->topo = pilha->topo->proximo;
+
+    // se livra dos dois
+    free(temp1);
+    free(temp2);
+
+    // e empilha a nova cor da combinação que foi tirada anteriormente
+    empilha(pilha, 'c');
+    return 1;
+
+  } else if((primeiro->cor == 'r' && segundo->cor == 'b') || (primeiro->cor == 'b' && segundo->cor == 'r')) {
+    No *temp1 = pilha->topo;
+    pilha->topo = pilha->topo->proximo;
+  
+    No *temp2 = pilha->topo;
+    pilha->topo = pilha->topo->proximo;
+
+    free(temp1);
+    free(temp2);
+
+    empilha(pilha, 'm');
+    return 1;
+    
+  } else if((primeiro->cor == 'r' && segundo->cor == 'g') || (primeiro->cor == 'g' && segundo->cor == 'r')) {
+    No *temp1 = pilha->topo;
+    pilha->topo = pilha->topo->proximo;
+  
+    No *temp2 = pilha->topo;
+    pilha->topo = pilha->topo->proximo;
+
+    free(temp1);
+    free(temp2);
+
+    empilha(pilha, 'y');
+    return 1;
+  }
+
+  return 0;
+}
+
+// função de eliminar os 3 blocos
+// primeiro eu vejo se existe 3 elementos na pilha
+int eliminar(Pilha *pilha) {
+  No *primeiro = pilha->topo;
+
+  if(primeiro != NULL) {
+    No *segundo = primeiro->proximo;
+
+    if(segundo != NULL) {
+      No *terceiro = segundo->proximo;
+
+      if(terceiro != NULL) {
+        // se exister eu vejo se eles são da mesma cor 
+        //e faço o negocio de pegar o primeiro, apontar para o proximo e se livar dele 3 vezes
+        if((primeiro->cor == segundo->cor) && (primeiro->cor == terceiro->cor)) {
+          for(int i = 0; i < 3; i++) {
+            No *temp1 = pilha->topo;
+            pilha->topo = pilha->topo->proximo;
+            free(temp1);
+          }
+          return 1;
+        }
       }
-      flores = temp;
-    }
-    
-    sscanf(linha, "%f,%f,%f,%f,%s", 
-      &flores[quantidade].Slength, 
-      &flores[quantidade].Swidth,
-      &flores[quantidade].Plenght,
-      &flores[quantidade].Pwidth,
-      flores[quantidade].species);
-      quantidade++;
-    }
-
-  float somaSlenght = 0;
-  float somaSwidth = 0;
-  float somaPlenght = 0;
-  float somaPwidth = 0;
-
-  for(int i = 0; i < quantidade; i++) {
-    somaSlenght += flores[i].Slength;
-    somaSwidth += flores[i].Swidth;
-    somaPlenght += flores[i].Plenght;
-    somaPwidth += flores[i].Pwidth;
-  }
-
-  float mediaSlenght = somaSlenght / quantidade;
-  float mediaSwidth = somaSwidth / quantidade;
-  float mediaPlenght = somaPlenght / quantidade;
-  float mediaPwidth = somaPwidth / quantidade;
-
-  int contadorSetosa = 0;
-  int contadorVersicolor = 0;
-  int contadorVirginica = 0;
-    
-  for(int i = 0; i < quantidade; i++) {
-    if(strcmp(flores[i].species, "Iris-setosa") == 0) {
-      contadorSetosa++;
-    } else if(strcmp(flores[i].species, "Iris-versicolor") == 0) {
-      contadorVersicolor++;
-    } else if(strcmp(flores[i].species, "Iris-virginica") == 0) {
-      contadorVirginica++;
     }
   }
-
-  char moda[50];
-  int comparar = contadorSetosa;
-  if(comparar < contadorVersicolor) {
-    comparar = contadorVersicolor;
-  } else if(comparar < contadorVirginica) {
-    comparar = contadorVirginica;
-  }
-
-  if(comparar == contadorSetosa) {
-    strcpy(moda, "Iris-setosa");
-  } else if(comparar == contadorVersicolor) {
-    strcpy(moda, "Iris-versicolor");
-  } else if(comparar == contadorVirginica) {
-    strcpy(moda, "Iris-virginica");
-  }
-
-  printf("%s\n", nome);
-
-  for(int i = 0; i < quantidade; i++) {
-    printf("%.2f | %.2f | %.2f | %.2f | %s\n", 
-      flores[i].Slength,
-      flores[i].Swidth,
-      flores[i].Plenght,
-      flores[i].Pwidth,
-      flores[i].species
-    );
-  }
-
-  printf("Moda: %s\n", moda);
-  printf("Média Sepal Length: %.2f\n", mediaSlenght);
-  printf("Média Sepal Width: %.2f\n", mediaSwidth);
-  printf("Média Pepal Length: %.2f\n", mediaPlenght);
-  printf("Média Pepal Width: %.2f\n", mediaPwidth);
-
-  fseek(arquivo, 0, SEEK_END);
-  fprintf(arquivo, "Moda: %s\n", moda);
-  fprintf(arquivo, "Média Sepal Length: %.2f\n", mediaSlenght);
-  fprintf(arquivo, "Média Sepal Width: %.2f\n", mediaSwidth);
-  fprintf(arquivo, "Média Pepal Length: %.2f\n", mediaPlenght);
-  fprintf(arquivo, "Média Pepal Width: %.2f\n", mediaPwidth);
-
-  free(flores);
+  return 0;
 }
 
 int main() {
-  int qtdeArquivos;
-  scanf("%d", &qtdeArquivos);
+  char caracter;
+  Pilha *pilha = malloc(sizeof(Pilha));
+  pilha->topo = NULL;
   
-  char nome[50];
-  for(int i = 1; i <= qtdeArquivos; i++) {
-    sprintf(nome, "iris%d.csv", i);
-    FILE *arquivo = fopen(nome, "r+");
+  // eu recebo as entradas ate o final do arquivo
+  while(scanf(" %c", &caracter) != EOF) {
+    empilha(pilha, caracter);
 
-    if(arquivo) {
-      processarArquivo(arquivo, nome);
-    } else {
-      printf("Erro ao ler o arquivo\n");
+    int flag1 = 1;
+    int flag2 = 1;
+
+    // enquanto uma das funções fizer algo, vai ter que repeti-las
+    while(flag1 || flag2) {
+      flag1 = fundir(pilha);
+      flag2 = eliminar(pilha);
     }
-    fclose(arquivo);
+    imprimir(pilha);
   }
-  
+
+  printf("Thank You So Much For Playing My Game!");
+
   return 0;
 }
